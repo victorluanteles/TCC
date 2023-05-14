@@ -14,10 +14,11 @@ while True:
         driver.find_element("xpath",'//*[@id="maisVagas"]').click()
 
         # Aguarde a página ser carregada
-        time.sleep(5)
+        time.sleep(10)
 
     except:
         # Se o botão "mostrar mais" não puder mais ser encontrado, saia do loop
+        print("não achou o botao")
         break
 
 # Depois de clicar em todos os botões "mostrar mais", obtenha o HTML da página
@@ -35,20 +36,17 @@ for vaga in vagas:
     vaga_info['id_vaga'] = vaga.find('a', class_='link-detalhes-vaga').get('id')
     vaga_info['cargo_vaga'] = vaga.find('a', class_='link-detalhes-vaga').get_text().strip()
     vaga_info['detalhes_vaga'] = vaga.find('div', class_='detalhes').get_text().strip()
-    #receber no url para acessar descricao interna
-    url = 'https://www.vagas.com.br' + vaga.find('a', class_='link-detalhes-vaga').get('href')
-    headers = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"}
-    site = requests.get(url, headers=headers)
-    soup = BeautifulSoup(site.content, 'html.parser')
-    vaga_info['descricao_interna_vaga'] = soup.find('div',class_='job-tab-content job-description__text texto').get_text()
+    detalhes_url = 'https://www.vagas.com.br' + vaga.find('a', class_='link-detalhes-vaga').get('href')
+    detalhes_response = requests.get(detalhes_url)
+    detalhes_html = detalhes_response.content
+    detalhes_soup = BeautifulSoup(detalhes_html, 'html.parser')
+    vaga_info['descricao_interna_vaga'] = detalhes_soup.find('div', class_='job-tab-content job-description__text texto').get_text()
     export_data.append(vaga_info)
 
 print(export_data)
-
 data = export_data
 df = pd.DataFrame(data=data)
 datatoexcel = pd.ExcelWriter('vagas_geral.xlsx')
 df.to_excel(datatoexcel)
 datatoexcel.close()
-print('DataFrame is written to Excel File successfully.')
+print('export ok')
