@@ -6,7 +6,6 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 
-
 # Inicializar o driver do Chrome
 driver_service = Service(executable_path=r"C:\Users\victo\OneDrive\Área de Trabalho\Documentos\TCC\chromedriver.exe")
 driver = webdriver.Chrome(service=driver_service)

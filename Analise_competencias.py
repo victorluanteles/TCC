@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-import numpy as np
 frases = [
     "Conhecimento em abordagens de engenharia de software",
     "Controle de demandas de TIC",
@@ -62,40 +61,52 @@ frases = [
     "Filtragem da informação para evitar sobrecarga",
     "Seleção das melhores fontes internas e externas de informação"
 ]
-data = pd.read_excel('C:\\Users\\victo\\Documents\\tcc\\vagas_geral_novo.xlsx')
-df_com_art = pd.DataFrame(frases, columns=['Frase'])
-df_vagas_site = pd.DataFrame(data=data)
+data = pd.read_excel('C:\\Users\\victo\\Documents\\tcc\\excel\\import\\vagas_geral_novo.xlsx')
+#criação do dataframe
+df_art = pd.DataFrame(frases, columns=['Frase'])
+df = pd.DataFrame(data=data)
+# tratativa do case-sensitive
+df['descricao_interna_vaga'] = df['descricao_interna_vaga'].str.upper().str.strip()
+df['cargo_vaga'] = df['cargo_vaga'].str.upper().str.strip()
+df_art['Frase'] = df_art['Frase'].str.upper().str.strip()
+# identificação das competências
+df['Frase_Encontrada'] = df['descricao_interna_vaga'].str.contains('|'.join(df_art['Frase']))
 
-df_vagas_site['descricao_interna_vaga'] = df_vagas_site['descricao_interna_vaga'].str.upper().str.strip()
-
-df_com_art['Frase'] = df_com_art['Frase'].str.upper().str.strip()
-
-df_vagas_site['Frase_Encontrada'] = df_vagas_site['descricao_interna_vaga'].str.contains('|'.join(df_com_art['Frase']))
-
-
-#
-# def remover_conjuncoes(frase):
-#     frase_sem_conjuncoes = re.sub(r'\b(a|com|como|da|das|de|do|dos|e|em|nas|no|os|ou|para|quanto|sobre|tanto|às)\b', '',frase)
-#     return frase_sem_conjuncoes
-#
-# df['Frase_sem_conjuncoes'] = df['Frase'].apply(remover_conjuncoes)
-#
-contagem = df_vagas_site['Frase_Encontrada'].value_counts()
-
-print("Quantidade True:", contagem[True])
-print("Quantidade False:", contagem[False])
+# contagem = df['Frase_Encontrada'].value_counts()
+# print("Quantidade True:", contagem[True])
+# print("Quantidade False:", contagem[False])
 
 
-df_vagas_site['TESTE'] = ''
+df['Comepetencia_artigo'] = ''
 
-for frase in df_com_art['Frase']:
-    mask = df_vagas_site['descricao_interna_vaga'].str.contains(frase)
-    df_vagas_site.loc[mask, 'TESTE'] = frase
+for frase in df_art['Frase']:
+    mask = df['descricao_interna_vaga'].str.contains(frase)
+    df.loc[mask, 'Comepetencia_artigo'] = frase
 
-print(df_vagas_site)
+df = df.drop('Unnamed: 0', axis=1)
+
+
+
+print(df)
+print(df['descricao_interna_vaga'].str.contains('ENSINO SUPERIOR | FORMAÇÃO '))
 
 # # # exportacao para excel
 datatoexcel = pd.ExcelWriter('analise_sem_conjun.xlsx')
-df_vagas_site.to_excel(datatoexcel)
+df.to_excel(datatoexcel)
 datatoexcel.close()
 print('export ok')
+
+df_filtrado = df[(df['Comepetencia_artigo']!= '')]
+
+datatoexcel = pd.ExcelWriter('analise_competencias.xlsx')
+df_filtrado.to_excel(datatoexcel, index=False)
+datatoexcel.close()
+
+
+
+# def remover_conjuncoes(frase):
+#     frase_sem_conjuncoes = re.sub(r'\b(A|COM|COMO|DA|DAS|DE|DO|DOS|E|EM|NAS|NO|OS|OU|PARA|QUANTO|SOBRE|TANTO|ÀS)\b', '',frase)
+#     return frase_sem_conjuncoes
+# df_art['Frase_sem_conjuncoes'] = df_art['Frase'].apply(remover_conjuncoes)
+# pd.set_option('display.max_colwidth', None)
+# print(df_art[['Frase_sem_conjuncoes','Frase']])
